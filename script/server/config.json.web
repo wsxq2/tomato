@@ -1,0 +1,52 @@
+{
+    "log": {
+        "access": "/var/log/v2ray/access.log",
+        "error": "/var/log/v2ray/error.log",
+        "level": "error"
+    },
+    "inbounds": [
+        {
+            "port": 12345,
+            "protocol": "vmess",
+            "host": "sub.wsxq2.xyz",
+            "ps":"搬瓦工美国02 - Vmess_WS_TLS - V2ray",
+            "settings": {
+                "clients": [
+                {
+                    "id": "0f9cf274-705c-46d3-ad7a-823ec8747220",
+                    "level": 1,
+                    "alterId": 64
+                }
+                ]
+            },
+            "streamSettings": {
+                "network": "ws",
+                "wsSettings": {
+                    "path": "/awesomepath"
+                }
+            },
+            "listen": "127.0.0.1"
+        }
+    ],
+    "outbounds": [
+    {
+        "protocol": "freedom",
+        "settings": {}
+    },
+    {
+        "protocol": "blackhole",
+        "settings": {},
+        "tag": "blocked"
+    }
+    ],
+    "routing": {
+        "rules": [
+        {
+            "type": "field",
+            "ip": ["geoip:private"],
+            "outboundTag": "blocked"
+        }
+        ]
+    }
+}
+

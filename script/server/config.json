@@ -1,0 +1,97 @@
+{
+    "inbounds": [
+        {
+            "port": 16834,
+            "protocol": "shadowsocks",
+            "settings": {
+                "method": "aes-256-gcm",
+                "password": "OUM2Dj4kTshkzaMEVQ6vFt1uEkhOh8eN",
+                "level": 0,
+                "ota": false,
+                "network": "tcp,udp"
+            }
+        },
+        {
+            "port": 16833,
+            "protocol": "vmess",
+            "settings": {
+                "clients": [
+                    {
+                        "id": "b22cdf53-195a-4f75-bf06-4c57435df72f",
+                        "level": 1,
+                        "alterId": 64
+                    }
+                ]
+            }
+        },
+        {
+            "port":80,
+            "protocol":"vmess",
+            "settings":{
+                "clients":[
+                    {
+                        "id":"ba68b904-0f86-434e-ade7-c707e55a0259",
+                        "alterId":64
+                    }
+                ]
+            },
+            "streamSettings":{
+                "wsSettings":{
+                    "path":"/",
+                    "headers":{}
+                },
+                "network":"ws"
+            }
+        },
+        {
+            "port":443,
+            "protocol":"vmess",
+            "settings":{
+                "clients":[
+                    {
+                        "id":"eeeff816-dd44-4a31-aa51-6d1bd737b9d9",
+                        "alterId":64
+                    }
+                ]
+            },
+            "streamSettings": {
+                "network":"ws",
+                "security": "tls",
+                "wsSettings":{
+                    "path":"/",
+                    "headers":{}
+                },
+                "tlsSettings": {
+                    "serverName": "ja.wsxq2.top",
+                    "certificates": [
+                        {
+                            "certificateFile": "/etc/letsencrypt/live/ja.wsxq2.top/fullchain.pem",
+                            "keyFile": "/etc/letsencrypt/live/ja.wsxq2.top/privkey.pem"
+                        }
+                    ]
+                }
+            }
+        }
+    ],
+    "outbounds": [
+        {
+            "protocol": "freedom",
+            "settings": {}
+        },
+        {
+            "protocol": "blackhole",
+            "settings": {},
+            "tag": "blocked"
+        }
+    ],
+    "routing": {
+        "rules": [
+            {
+                "type": "field",
+                "ip": ["geoip:private"],
+                "outboundTag": "blocked"
+            }
+        ]
+    }
+}
+
