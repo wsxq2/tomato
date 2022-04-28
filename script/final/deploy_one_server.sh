@@ -10,18 +10,43 @@ set -eu
 set -x
 
 
-HOST=c.wsxq2.xyz
+HOST="${1:-c.wsxq2.xyz}"
 
 DATA_DIR='data'
 V2RAY_CONFIG_FILE="$DATA_DIR/config.json"
 NGINX_CONFIG_FILE="$DATA_DIR/nginx.conf"
 NGINX_LNMP_CONFIG_FILE="$DATA_DIR/nginx.conf.lnmp"
 
-ROOT_PASSWORD=qwer
+MYSQL_ROOT_PASSWD=qwer
 
 #SSH_PORT=26635
 SSH_PORT=22
 TO_BE_OPENED_PORTS=($SSH_PORT 443)
+
+color_echo()
+{
+    local color
+    color="$1"
+    shift
+    echo -e '\033['"$color"'m'"$@"'\033[0m'
+}
+green()
+{
+    color_echo '1;32' "$@"
+}
+blue()
+{
+    color_echo '0;36' "$@"
+}
+yellow()
+{
+    color_echo '1;33' "$@"
+}
+red()
+{
+    color_echo '1;31' "$@"
+}
+
 
 random_string()
 {
@@ -140,7 +165,7 @@ chmod 600 /root/.secrets/certbot/cloudflare.ini
 
 # 获取证书
 get_cert(){
-    [[ -f /etc/letsencrypt/renewal/wsxq2.xyz.conf ]] || certbot certonly   --dns-cloudflare   --dns-cloudflare-credentials ~/.secrets/certbot/cloudflare.ini   -d *.wsxq2.xyz -i nginx -m wsxq222222@gmail.com -v |yes
+    [[ -f /etc/letsencrypt/renewal/wsxq2.xyz.conf ]] || certbot certonly --non-interactive --dns-cloudflare   --dns-cloudflare-credentials ~/.secrets/certbot/cloudflare.ini   -d *.wsxq2.xyz -m wsxq222222@gmail.com -v
 }
 
 # 测试自动更新是否正常
@@ -184,14 +209,16 @@ install_lnmp(){
 
     systemctl start mariadb nginx php-fpm
 
-    mysql -sfu root -p"$ROOT_PASSWORD" <<EOF
-UPDATE mysql.user SET Password=PASSWORD('$ROOT_PASSWORD') WHERE User='root';
+    if mysql -B -uroot <<<'show databases;' &>/dev/null; then
+        mysql -sfu root<<EOF
+UPDATE mysql.user SET Password=PASSWORD('$MYSQL_ROOT_PASSWD') WHERE User='root';
 DELETE FROM mysql.user WHERE User='';
 DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1');
 DROP DATABASE IF EXISTS test;
 DELETE FROM mysql.db WHERE Db='test' OR Db='test\\_%';
 FLUSH PRIVILEGES;
 EOF
+    fi
 
     if ! mysql -B -uwsxq -p658231 bus <<<'show tables;'|grep -q XianLu; then
         pushd ~/BusSecurityManagement/back-end
@@ -215,6 +242,8 @@ function main_() {
     config_firewall
 
     config_crontab
+
+    green success
 }
 
 main_
