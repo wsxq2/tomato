@@ -9,13 +9,13 @@
             "port": 12345,
             "protocol": "vmess",
             "host": "sub.wsxq2.xyz",
-            "ps":"搬瓦工美国02 - Vmess_WS_TLS - V2ray",
+            "ps":"sub.wsxq2.xyz",
             "settings": {
                 "clients": [
                 {
                     "id": "0f9cf274-705c-46d3-ad7a-823ec8747220",
                     "level": 1,
-                    "alterId": 64
+                    "alterId": 0
                 }
                 ]
             },
