@@ -165,7 +165,7 @@ chmod 600 /root/.secrets/certbot/cloudflare.ini
 
 # 获取证书
 get_cert(){
-    [[ -f /etc/letsencrypt/renewal/wsxq2.xyz.conf ]] || certbot certonly --non-interactive --dns-cloudflare   --dns-cloudflare-credentials ~/.secrets/certbot/cloudflare.ini   -d *.wsxq2.xyz -m wsxq222222@gmail.com -v
+    [[ -f /etc/letsencrypt/renewal/wsxq2.xyz.conf ]] || certbot certonly --non-interactive --dns-cloudflare   --dns-cloudflare-credentials ~/.secrets/certbot/cloudflare.ini   -d *.wsxq2.xyz -m wsxq222222@gmail.com -v --agree-tos
 }
 
 # 测试自动更新是否正常
