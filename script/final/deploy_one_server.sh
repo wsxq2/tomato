@@ -10,10 +10,14 @@ set -eu
 set -x
 
 
+HOST=c.wsxq2.xyz
+
 DATA_DIR='data'
-V2RAY_CONFIG_FILE="$DATA/config.json"
-NGINX_CONFIG_FILE="$DATA/nginx.conf"
-NGINX_LNMP_CONFIG_FILE="$DATA/nginx.conf.lnmp"
+V2RAY_CONFIG_FILE="$DATA_DIR/config.json"
+NGINX_CONFIG_FILE="$DATA_DIR/nginx.conf"
+NGINX_LNMP_CONFIG_FILE="$DATA_DIR/nginx.conf.lnmp"
+
+ROOT_PASSWORD=qwer
 
 #SSH_PORT=26635
 SSH_PORT=22
@@ -38,10 +42,15 @@ random_port(){
 }
 
 config_ssh(){
-    grep -q 'rsa-key-20180602' ~/.ssh/authorized_keys || cat >> ~/.ssh/authorized_keys <<-EOF
+    sed -i 's/PermitRootLogin no/PermitRootLogin yes/' /etc/ssh/sshd_config
+    [[ -d ~/.ssh ]] || mkdir ~/.ssh && chmod 700 ~/.ssh
+    grep -q 'rsa-key-20180602' ~/.ssh/authorized_keys || cat >> ~/.ssh/authorized_keys <<-'EOF'
 ssh-rsa AAAAB3NzaC1yc2EAAAABJQAAAQEArWM+lwt05DEKKUwrAyFbW6CYocRAJot7hLA4RmQemIyzy5Dg1o+r8DdBfo8glZ3Ka54tKSmeDSCxpN1p3TOlfTODrCKxHYxp9OP0qHa7ZffMrfBq2gdGJF7rdv1yUflAkR2dd0VodpRqVRgQdrWAIMKvMg3R8Npurzku0djSGqmVU4Dht0qMnGE7l9iKhmiDkjDRpUK4fuQkhR8IcOYDtb0wcrg7o8qUI1eSxj5BrtfsJ22vut6dkNw/qrvGrJuJrG76zv1ZUtZEBQS6kC8JEbXHwtuZ3YKPlST7T5Jhy4jT+gyiQZ0f/kK1nQjcftURjjBoGZw4ViWhSp3YSEHFyQ== rsa-key-20180602
 ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC+wQx4VeTn3EbawM9T552tO2cGuDRqIAG0BNDcIqX2v04mUzkUMpGww03gwV+OLSnIOPoyXPkiHKcCHOC4i8llBOrS6zeErRIldgZFJvWN0k+l94vzfAPcNeeWl5YuKqQG2LoeM1fJ8xV4oiSAJzTeppHRxYDBT5jq5K6zQIZ4c+xllHWr8v4j44QiY96iU1OKAaIUZm1M3JjD+F84KD+QS6/7i7VKyT6ACD6xvFFCXcFfkYUlZzxMH7Pwb7n9QsJsc1gdLMyN/LMy6OcF1CTuEkit3i3mhPcN2IoLe5zA+t2TWrAMkY4rbBJm/mKvrUa3fP5wWpo8CL8ByPsYKDVoeuHLfJ0WUYP3CDxXiksDO7XrAVHlx9zTrsZ4a7pFeBbhbjUZvdGV2KWS9wXxzFQz35kpekQI56cTEmKpd18LeGV3X8tIUJOpNkZja+9bLKtUL7pRldyIPgAA6YgxlaN5po4jbcA4xYF9VlXWBzJvnVzyJqgbiio9fkKS2yHXfTk= vagrant@archlinux
-    EOF
+EOF
+    chmod 600 ~/.ssh/authorized_keys
+
+    systemctl restart sshd
 }
 
 v2ray(){
@@ -49,8 +58,8 @@ v2ray(){
         install )
             bash <(curl -L https://raw.githubusercontent.com/v2fly/fhs-install-v2ray/master/install-release.sh)
             rs=`random_string 10`
-            sed -r -e "s/0f9cf274-705c-46d3-ad7a-823ec8747220/`get_uuid`/;" -e "s/awesomepath/$rs/;s/sub.wsxq2.xyz/$HOST/g;" $V2RAY_CONFIG_FILE > /etc/v2ray/config.json
-            sed -re "s/awesomepath/$rs;s/sub.wsxq2.xyz/$HOST"  $NGINX_CONFIG_FILE > /etc/nginx/nginx.conf
+            sed -r -e "s/0f9cf274-705c-46d3-ad7a-823ec8747220/`get_uuid`/;" -e "s/awesomepath/$rs/;s/sub.wsxq2.xyz/$HOST/g;" $V2RAY_CONFIG_FILE > /usr/local/etc/v2ray/config.json
+            sed -re "s/awesomepath/$rs/g;s/sub.wsxq2.xyz/$HOST/g;"  $NGINX_CONFIG_FILE > /etc/nginx/nginx.conf
             systemctl restart v2ray nginx
             ;;
         uninstall)
@@ -99,7 +108,9 @@ install_and_prepare_snap(){
     yum install snapd -y
     systemctl enable --now snapd.socket
     ln -sf /var/lib/snapd/snap /snap
-    snap install core
+    while ! snap install core;do
+        sleep 1
+    done
     snap refresh core
 }
 
@@ -129,7 +140,7 @@ chmod 600 /root/.secrets/certbot/cloudflare.ini
 
 # 获取证书
 get_cert(){
-    certbot certonly   --dns-cloudflare   --dns-cloudflare-credentials ~/.secrets/certbot/cloudflare.ini   -d *.wsxq2.xyz -i nginx -v
+    [[ -f /etc/letsencrypt/renewal/wsxq2.xyz.conf ]] || certbot certonly   --dns-cloudflare   --dns-cloudflare-credentials ~/.secrets/certbot/cloudflare.ini   -d *.wsxq2.xyz -i nginx -m wsxq222222@gmail.com -v |yes
 }
 
 # 测试自动更新是否正常
@@ -161,21 +172,34 @@ install_lnmp(){
 
     yum install wget git nginx mariadb mariadb-server php php-fpm php-pdo php-mysql -y
 
-    echo -ne '\n\nqwer\nqwer\n\n\n\n' | mysql_secure_installation
-
+    pushd ~
     [[ -d BusSecurityManagement ]] || git clone https://github.com/wsxq2/BusSecurityManagement.git
     pushd BusSecurityManagement
     cp -fr front-end/web/* /usr/share/nginx/html/
     sed -i 's/your mysql root password/qwer/g' back-end/all.sh
+    popd
+    popd
 
     cp -f $NGINX_LNMP_CONFIG_FILE /etc/nginx/nginx.conf
 
     systemctl start mariadb nginx php-fpm
 
-    bash back-end/all.sh
+    mysql -sfu root -p"$ROOT_PASSWORD" <<EOF
+UPDATE mysql.user SET Password=PASSWORD('$ROOT_PASSWORD') WHERE User='root';
+DELETE FROM mysql.user WHERE User='';
+DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1');
+DROP DATABASE IF EXISTS test;
+DELETE FROM mysql.db WHERE Db='test' OR Db='test\\_%';
+FLUSH PRIVILEGES;
+EOF
+
+    if ! mysql -B -uwsxq -p658231 bus <<<'show tables;'|grep -q XianLu; then
+        pushd ~/BusSecurityManagement/back-end
+        bash all.sh
+        popd
+    fi
 
     systemctl enable nginx mariadb php-fpm
-    popd
 }
 
 
