@@ -11,6 +11,7 @@ set -x
 
 
 HOST="${1:-c.wsxq2.xyz}"
+SSH_PORT="${2:-22}"
 
 DATA_DIR='data'
 V2RAY_CONFIG_FILE="$DATA_DIR/config.json"
@@ -19,8 +20,6 @@ NGINX_LNMP_CONFIG_FILE="$DATA_DIR/nginx.conf.lnmp"
 
 MYSQL_ROOT_PASSWD=qwer
 
-#SSH_PORT=26635
-SSH_PORT=22
 TO_BE_OPENED_PORTS=($SSH_PORT 443)
 
 color_echo()
@@ -119,14 +118,6 @@ config_firewall(){
 config_crontab(){
     grep -q 'ntpdate' /etc/crontab || echo '*/1 * * * * root ntpdate pool.ntp.org >/dev/null 2>&1' >> /etc/crontab
 }
-
-
-
-get_github_ver(){
-    echo -n "$(wget --no-check-certificate -qO- https://api.github.com/repos/${1:-tindy2013/subconverter}/releases/latest | grep 'tag_name' | cut -d\" -f4)"
-}
-
-
 
 # 安装并准备 snap
 install_and_prepare_snap(){
