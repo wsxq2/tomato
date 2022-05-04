@@ -11,10 +11,12 @@ set -x
 
 
 declare -A IP_PORTS=(
-["c.wsxq2.xyz"]="22"
+["sub.wsxq2.xyz"]="26635"
+["gj.wsxq2.xyz"]="26635"
 )
 declare -A IP_CONFIG_FILES=(
-["c.wsxq2.xyz"]="/usr/local/etc/v2ray/config.json"
+["sub.wsxq2.xyz"]="/usr/local/etc/v2ray/config.json"
+["gj.wsxq2.xyz"]="/usr/local/etc/v2ray/config.json"
 )
 
 
