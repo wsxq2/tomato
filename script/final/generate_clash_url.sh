@@ -35,5 +35,8 @@ done
 url=$(urlencode "`cat urls.txt`")
 
 wget -O clash.yml "http://127.0.0.1:25500/sub?target=clash&url=$url"
-#rm -rf urls.txt *.json
+
+scp -P26635 clash.yml root@sub.wsxq2.xyz:/usr/share/nginx/html/
+
+rm -rf urls.txt *.json clash.yml
 
